@@ -1,11 +1,16 @@
 import uuid
 import json
+import sys
+import ast
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-KEYWORDS = ["football", "optimization"]
+parametre = sys.argv[1]
+KEYWORDS = ast.literal_eval(parametre)
+
+# KEYWORDS = ["football", "optimization"]
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -16,7 +21,6 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 
 try:
     client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
 
@@ -142,7 +146,7 @@ for url in title_and_link["springer_url"]:
     data["Alıntı sayısı"].append(articleCitations)
     data["Doi numarası"].append(articleDoi)
     data["URL"].append(articleURL)
-    data["pdfURL"].append(pdfURL)
+    # data["pdfURL"].append(pdfURL)
 
     data_.append({
         "journalID": journalID,

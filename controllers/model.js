@@ -8,11 +8,14 @@ module.exports = {
 
     runScraper: async(req, res, next) => {
 
-        // console.log(req.body)
+        const { searchString } = req.body;
         
-        runPythonScraper()
+        let keywordsArr = searchString.split(",");
+
+        keywordsArr = keywordsArr.map(keyword => keyword.trim());
+
+        runPythonScraper(`'${JSON.stringify(keywordsArr)}'`)
             .then(output => {
-                console.log(output)
                 res.json({
                     code: 200,
                     data:  output,
@@ -24,21 +27,9 @@ module.exports = {
 
         const data = await Scrapped.find()
         
-
-        console.log('done', data)
         res.json({
             code: 200,
             data:  data,
         });
-    },
-
-    runEx: async(req, res, next) => {
-        runPythonScraper(5,6)
-            .then(output => {
-                res.json({
-                    code: 200,
-                    data:  JSON.parse(output),
-                });
-            })
     },
 }
