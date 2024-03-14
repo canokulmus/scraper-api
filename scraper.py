@@ -22,10 +22,10 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 try:
     client.admin.command('ping')
 except Exception as e:
-    print(e)
+    pass
+    #print(e)
 
 def getURL(keywords: list):
-    # TODO: split white space keywords
     URL = "https://link.springer.com/search?new-search=true&query="
     # Example url: https://link.springer.com/search?new-search=true&query=optimization%2C+football&content-type=article&dateFrom=&dateTo=&sortBy=relevance
 
