@@ -23,8 +23,8 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 try:
     client.admin.command('ping')
 except Exception as e:
-    pass
     #print(e)
+    pass
 
 def getURL(keywords: list):
     URL = "https://link.springer.com/search?new-search=true&query="
@@ -79,10 +79,14 @@ for url in title_and_link["springer_url"]:
         i.text.split("\xa0")[0]
         for i in articleSoup.find_all("li", class_="c-article-author-list__item")
     ]
-    articleWriters = [
-        re.split('(\d+)', i)[0]
-        for i in articleWriters
-    ]
+    try:
+        articleWriters = [
+            re.split(r'(\d+)', i)[0]
+            for i in articleWriters
+        ]
+    except:
+        pass
+    
     articleType = articleSoup.find_all("li", class_="c-breadcrumbs__item")[
         -1
     ].text.split("\n")[1]
