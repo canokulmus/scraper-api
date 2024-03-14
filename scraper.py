@@ -2,6 +2,7 @@ import uuid
 import json
 import sys
 import ast
+import re
 
 import pandas as pd
 import requests
@@ -10,7 +11,7 @@ from bs4 import BeautifulSoup
 parametre = sys.argv[1]
 KEYWORDS = ast.literal_eval(parametre)
 
-# KEYWORDS = ["football", "optimization"]
+#KEYWORDS = ["football", "optimization"]
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -65,23 +66,6 @@ for article in articles:
             "https://link.springer.com/content/pdf" + link.split("article")[1] + ".pdf"
         )
 
-
-data = {
-    "Yayın id": [],
-    "Yayın adı": [],
-    "Yazarların isimleri": [],
-    "Yayın türü": [],
-    "Yayımlanma tarihi": [],
-    "Yayıncı adı": [],
-    "Anahtar kelimeler": [],
-    "Anahtar kelimeler (makale)": [],
-    "Özet": [],
-    "Referanslar": [],
-    "Alıntı sayısı": [],
-    "Doi numarası": [],
-    "URL": [],
-}
-
 data_ = []
  
 for url in title_and_link["springer_url"]:
@@ -94,6 +78,10 @@ for url in title_and_link["springer_url"]:
     articleWriters = [
         i.text.split("\xa0")[0]
         for i in articleSoup.find_all("li", class_="c-article-author-list__item")
+    ]
+    articleWriters = [
+        re.split('(\d+)', i)[0]
+        for i in articleWriters
     ]
     articleType = articleSoup.find_all("li", class_="c-breadcrumbs__item")[
         -1
@@ -119,11 +107,16 @@ for url in title_and_link["springer_url"]:
             class_="c-article-references__item js-c-reading-companion-references-item",
         )
     ]
-    articleCitations = (
-        articleSoup.find("p", class_="app-article-metrics-bar__count")
-        .text.split("\n")[2]
-        .split(" ")[0]
-    )
+    try:
+        articleCitations = [i.text
+                            for i in articleSoup.find_all(
+                                "p",
+                                class_="app-article-metrics-bar__count")
+                            if "Citation" in i.text
+        ][0].split("\n")[-1].split(" Citation")[0]
+    except:
+        articleCitations = 0
+
     articleDoi = [
         i.text
         for i in articleSoup.find_all(
@@ -132,21 +125,6 @@ for url in title_and_link["springer_url"]:
     ][-1]
     articleURL = url
     pdfURL = ("https://link.springer.com/content/pdf" + url.split("article")[1] + ".pdf")
-
-    data["Yayın id"].append(journalID)
-    data["Yayın adı"].append(articleTitle)
-    data["Yazarların isimleri"].append(articleWriters)
-    data["Yayın türü"].append(articleType)
-    data["Yayımlanma tarihi"].append(articleDate)
-    data["Yayıncı adı"].append(journalTitle)
-    data["Anahtar kelimeler"].append(searchKeywords)
-    data["Anahtar kelimeler (makale)"].append(articleKeywords)
-    data["Özet"].append(articleAbstract)
-    data["Referanslar"].append(articleRefrences)
-    data["Alıntı sayısı"].append(articleCitations)
-    data["Doi numarası"].append(articleDoi)
-    data["URL"].append(articleURL)
-    # data["pdfURL"].append(pdfURL)
 
     data_.append({
         "journalID": journalID,
@@ -165,7 +143,7 @@ for url in title_and_link["springer_url"]:
         "pdfURL": pdfURL
     })
 
-df = pd.DataFrame.from_dict(data)
+df = pd.DataFrame.from_dict(data_)
 json_data = json.dumps(data_)
 
 db = client["scrappedData"]
